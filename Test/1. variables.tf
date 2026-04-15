@@ -21,8 +21,11 @@ variable "tfc_project_name" {
   description = "The project under which a workspace will be created"
 }
 
-variable "tfc_workspace_name" {
-  type        = list(any)
-  default     = ["my-aws-workspace"]
-  description = "The name list of the workspaces that you'd like to create and connect to AWS"
+variable "workspaces" {
+  type = map(object({
+    working_directory   = string
+    vcs_repo_identifier = string
+    trigger_patterns    = list(string)
+  }))
+  description = "A map of workspace names to their configuration objects"
 }

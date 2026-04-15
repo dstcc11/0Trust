@@ -17,13 +17,41 @@ data "tfe_project" "tfc_project" {
 # to AWS with the permissions set in the AWS policy.
 #
 # https://registry.terraform.io/providers/hashicorp/tfe/latest/docs/resources/workspace
+
+data "tfe_oauth_client" "client" {
+  organization     = var.tfc_organization_name
+  service_provider = "github"
+}
+
+# output "tfe_oauth_client" {
+#   value = {
+#     name                          = data.tfe_oauth_client.client.name
+#     id                            = data.tfe_oauth_client.client.id
+#     api_url                       = data.tfe_oauth_client.client.api_url
+#     callback_url                  = data.tfe_oauth_client.client.callback_url
+#     http_url                      = data.tfe_oauth_client.client.http_url
+#     oauth_token_id                = data.tfe_oauth_client.client.oauth_token_id
+#     service_provider              = data.tfe_oauth_client.client.service_provider
+#     service_provider_display_name = data.tfe_oauth_client.client.service_provider_display_name
+#   }
+# }
+
 resource "tfe_workspace" "my_workspace" {
-  for_each                      = toset(var.tfc_workspace_name)
-  name                          = each.value
+  for_each                      = var.workspaces
+  name                          = each.key
   organization                  = var.tfc_organization_name
   project_id                    = data.tfe_project.tfc_project.id
+  working_directory             = each.value.working_directory
+  auto_apply                    = true
+  auto_apply_run_trigger        = true
+  terraform_version             = "latest"
   structured_run_output_enabled = false
   force_delete                  = true
+  trigger_patterns              = each.value.trigger_patterns
+  vcs_repo {
+    identifier     = each.value.vcs_repo_identifier
+    oauth_token_id = data.tfe_oauth_client.client.oauth_token_id
+  }
 }
 
 # The following variables must be set to allow runs

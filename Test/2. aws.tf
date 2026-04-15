@@ -15,7 +15,7 @@ resource "aws_iam_openid_connect_provider" "tfc_provider" {
 }
 
 resource "aws_iam_role" "tfc_role" {
-  for_each = toset(var.tfc_workspace_name)
+  for_each = var.workspaces
   name     = "tfc-role-${each.key}"
 
   assume_role_policy = <<EOF
@@ -61,7 +61,7 @@ EOF
 }
 
 resource "aws_iam_role_policy_attachment" "tfc_policy_attachment" {
-  for_each   = toset(var.tfc_workspace_name)
+  for_each   = var.workspaces
   role       = aws_iam_role.tfc_role[each.key].name
   policy_arn = aws_iam_policy.tfc_policy.arn
 }
